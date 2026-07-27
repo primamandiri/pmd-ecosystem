@@ -1,0 +1,15 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/absensi/page": "/absensi",
+  "/aktivitas/page": "/aktivitas",
+  "/dashboard/absensi/page": "/dashboard/absensi",
+  "/dashboard/laporan/page": "/dashboard/laporan",
+  "/database/toko/page": "/database/toko",
+  "/favicon.ico/route": "/favicon.ico",
+  "/login/page": "/login",
+  "/page": "/",
+  "/pengaturan/password/page": "/pengaturan/password",
+  "/spk/page": "/spk",
+  "/tambah-noo/page": "/tambah-noo"
+}
