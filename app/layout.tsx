@@ -35,13 +35,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
     // 2. Salam & Waktu Real-time
     const updateTime = () => {
-      const now = new Date();
-      const h = now.getHours();
-      
-      if (h < 11) setGreeting("Selamat Pagi");
-      else if (h < 15) setGreeting("Selamat Siang");
-      else if (h < 18) setGreeting("Selamat Sore");
-      else setGreeting("Selamat Malam");
+  const now = new Date();
+  const day = now.getDay();
+  const peakDays = ["", "Solo", "DIY", "Semarang", "Solo", "DIY", "Semarang"];
+  const areas = ["", "Solo", "DIY", "Semarang", "Solo", "DIY", "Semarang"];
+  setGreeting(`${areas[day]} Peak Day🔥`);
 
       setTime(
         now.toLocaleDateString("id-ID", {
@@ -114,7 +112,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="flex-1 flex flex-col min-w-0 bg-slate-50">
             
             {/* Top Navbar Ala Accurate */}
-            <header className="bg-white border-b border-slate-200 shadow-sm px-4 lg:px-6 py-2.5 flex items-center justify-between shrink-0 gap-4">
+            <header className="header-gradient px-4 py-2 flex items-center justify-between shrink-0 shadow-md">
+
+
               
               {/* Sisi Kiri: Hamburger & Title/Search */}
               <div className="flex items-center gap-3">
@@ -130,10 +130,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
                 {/* Info Salam & Jam */}
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-800 leading-tight">
+                  <h2 className="text-sm font-semibold text-white leading-tight">
                     {greeting ? `${greeting}, ${displayName}` : "Selamat datang"}
                   </h2>
-                  <p className="text-[11px] text-slate-400 font-medium">{time || "—"}</p>
+                  <p className="text-[11px] text-white/80 font-medium">{time || "—"}</p>
                 </div>
               </div>
 

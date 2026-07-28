@@ -59,15 +59,14 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const navigate = (path: string) => { router.push(path); if (onClose) onClose(); };
 
   return (
-    <div className="w-64 h-full bg-gray-50 border-r border-gray-200 flex flex-col">
-      {/* LOGO - klik ke /home */}
-      <div className="p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition"
+    <div className="w-64 h-full sidebar-dark flex flex-col">
+      <div className="p-4 border-b border-white/10 cursor-pointer hover:bg-white/5 transition"
         onClick={() => { router.push("/home"); if (onClose) onClose(); }}>
         <div className="flex items-center gap-3">
-          <img src="/logoPMD.png" alt="Logo" className="w-10 h-10 object-contain"
+          <img src="/logoPMD.png" alt="Logo" className="w-10 h-10 object-contain rounded-lg"
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
           <div>
-            <p className="font-bold text-sm text-blue-700">PMD Ecosystem</p>
+            <p className="font-bold text-sm text-white">PMD Ecosystem</p>
             <p className="text-xs text-gray-400">CV Prima Mandiri Distribusi</p>
           </div>
         </div>
@@ -77,8 +76,8 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         {menu.map(m => (
           <div key={m.label}>
             <button onClick={() => toggle(m.label)}
-              className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-blue-50 text-sm font-medium text-gray-700">
-              <m.icon className="w-4 h-4 text-blue-600" />
+              className="w-full flex items-center gap-2 p-2 rounded-lg menu-item text-sm font-medium text-gray-300">
+              <m.icon className="w-4 h-4 text-blue-400" />
               <span className="flex-1 text-left">{m.label}</span>
               {openMenu.includes(m.label) ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
             </button>
@@ -87,7 +86,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
                 {m.children.map(c => (
                   <button key={c.path} onClick={() => navigate(c.path)}
                     className={`w-full flex items-center gap-2 p-2 rounded-lg text-sm ${
-                      pathname === c.path ? "bg-blue-100 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-100"
+                      pathname === c.path ? "bg-blue-600 text-white font-medium" : "text-gray-400 hover:bg-white/10 hover:text-white"
                     }`}>
                     <c.icon className="w-3.5 h-3.5" />
                     <span>{c.label}</span>
