@@ -28,7 +28,7 @@ export default function HomePage() {
       const { count: a } = await supabase.from("attendance").select("*", { count:"exact", head:true }).eq("date", today);
       const { count: s } = await supabase.from("spk_visits").select("*", { count:"exact", head:true }).eq("date", today);
       const { data: monthly } = await supabase.from("monthly_reports").select("ta_total, ta_noo, toko_reaktif").eq("area", "ALL");
-      const sum = (arr: any[], key: string) => arr?.reduce((s, r) => s + (Number(r[key]) || 0), 0) || 0;
+     const sum = (arr: any[] | null, key: string) => arr?.reduce((s, r) => s + (Number(r[key]) || 0), 0) || 0;
       setStats({ absensi: a||0, spk: s||0, aktif: sum(monthly, "ta_total"), noo: sum(monthly, "ta_noo"), reaktif: sum(monthly, "toko_reaktif") });
     });
   }, []);
