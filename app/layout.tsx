@@ -8,55 +8,54 @@ import "./globals.css";
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [greeting, setGreeting] = useState("");
-  const [now, setNow] = useState(new Date());
+  const [time, setTime] = useState("");
   const isLogin = pathname === "/login";
+  const supabase = createClient();
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) supabase.from("profiles").select("display_name").eq("id", data.user.id).single()
-        .then(({ data: p }) => { if (p) setProfile(p); });
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user) {
+        setUser(data.user);
+        const { data: p } = await supabase.from("profiles").select("display_name").eq("id", data.user.id).single();
+        if (p) setProfile(p);
+      }
     });
     const h = new Date().getHours();
     if (h < 11) setGreeting("Selamat Pagi");
     else if (h < 15) setGreeting("Selamat Siang");
     else if (h < 18) setGreeting("Selamat Sore");
     else setGreeting("Selamat Malam");
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
+    setTime(new Date().toLocaleDateString("id-ID") + " - " + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false }));
   }, []);
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
 
   if (isLogin) return <html lang="id"><body>{children}</body></html>;
 
   return (
     <html lang="id">
-      <body className="bg-blue-50/30">
+      <body className="bg-gray-50">
         <div className="flex h-screen overflow-hidden">
           {mobileOpen && <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setMobileOpen(false)} />}
-          <div className={`fixed md:static inset-y-0 left-0 z-50 transform transition-transform ${
-            mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
+          <div className={`fixed md:static inset-y-0 left-0 z-50 transform transition-transform ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
             <Sidebar onClose={() => setMobileOpen(false)} />
           </div>
           <div className="flex-1 flex flex-col min-h-0">
-            <header className="bg-white/80 backdrop-blur border-b border-blue-100 px-4 py-2 flex items-center gap-3 shrink-0">
-              <button onClick={() => setMobileOpen(true)} className="md:hidden text-xl text-blue-600">☰</button>
-              <div className="flex items-center gap-3 flex-1">
-                <img src="/logoPMD.png" alt="" className="w-8 h-8 object-contain md:hidden"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-blue-800 truncate">
-                    {greeting}, {profile?.display_name || "User"}
-                  </p>
-                  <p className="text-xs text-blue-400">
-                    {now.toLocaleDateString("id-ID", { weekday:"long", day:"numeric", month:"long", year:"numeric" })}
-                    {" • "}{now.toLocaleTimeString("id-ID")}
-                  </p>
-                </div>
+            <header className="bg-white border-b shadow-sm px-4 py-2 flex items-center gap-3 shrink-0">
+              <button onClick={() => setMobileOpen(true)} className="md:hidden text-xl text-gray-600">☰</button>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-800 truncate">{greeting}, {profile?.display_name || user?.email?.split("@")[0] || "User"}</p>
+                <p className="text-xs text-gray-400">{time}</p>
               </div>
+              <button onClick={logout} className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600">🚪 Logout</button>
             </header>
-            <main className="flex-1 overflow-auto bg-blue-50/20">{children}</main>
+            <main className="flex-1 overflow-y-auto">{children}</main>
           </div>
         </div>
       </body>

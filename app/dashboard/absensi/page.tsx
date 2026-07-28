@@ -5,69 +5,46 @@ import { createClient } from "@/lib/supabase";
 export default function HistoryAbsensiPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("");
+  const [openDate, setOpenDate] = useState<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const { data } = await supabase
-      .from("attendance")
-      .select("*")
-      .order("date", { ascending: false })
-      .order("time", { ascending: false });
+    const { data } = await supabase.from("attendance").select("*").order("date", { ascending: false }).order("time", { ascending: false });
     if (data) setData(data);
     setLoading(false);
   }
 
   const grouped: any = {};
   for (const d of data) {
-    const key = d.date;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(d);
+    if (!grouped[d.date]) grouped[d.date] = [];
+    grouped[d.date].push(d);
   }
 
   if (loading) return <div className="p-4 text-center text-gray-400">Loading...</div>;
 
   return (
-    <div className="p-3 max-w-3xl mx-auto space-y-3">
-      <h1 className="text-sm font-bold text-blue-800">📋 History Absensi</h1>
-
-      <input type="text" placeholder="Cari..." value={filter} onChange={e => setFilter(e.target.value)}
-        className="w-full p-1.5 border rounded text-xs" />
-
-      {Object.entries(grouped).map(([date, items]: [string, any]) => {
-        const filtered = items.filter((d: any) => d.type?.includes(filter) || d.date?.includes(filter));
-        if (filtered.length === 0) return null;
-        return (
-          <div key={date} className="bg-white rounded-lg shadow-sm border border-gray-100">
-            <div className="px-3 py-1.5 bg-blue-50 text-blue-800 font-medium text-xs rounded-t-lg">
-              📅 {new Date(date).toLocaleDateString("id-ID", { weekday:"long", day:"numeric", month:"long", year:"numeric" })}
+    <div className="p-3 max-w-3xl mx-auto">
+      <h1 className="text-base font-bold text-blue-800 mb-3">📋 History Absensi</h1>
+      {Object.entries(grouped).map(([date, items]: [string, any]) => (
+        <div key={date} className="bg-white rounded-xl shadow-sm border border-gray-100 mb-2 overflow-hidden">
+          <button onClick={() => setOpenDate(openDate === date ? null : date)}
+            className="w-full flex items-center justify-between px-4 py-2.5 bg-blue-50 hover:bg-blue-100">
+            <span className="text-sm font-medium text-blue-800">📅 {new Date(date).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
+            <span className="text-xs text-blue-500">{openDate === date ? "▲" : "▼"}</span>
+          </button>
+          {openDate === date && items.map((d: any) => (
+            <div key={d.id} className="flex items-center gap-3 px-4 py-2 border-t border-gray-50">
+              {d.selfie_url ? <img src={d.selfie_url} className="w-10 h-10 rounded-full object-cover border" /> : <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xs">📷</div>}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium">{d.name} <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold ${d.type === "berangkat" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>{d.type}</span></p>
+                <p className="text-[10px] text-gray-400">🕐 {d.time?.slice(0, 5)}</p>
+              </div>
             </div>
-            <div className="divide-y">
-              {filtered.map((d: any) => (
-                <div key={d.id} className="px-3 py-1.5 flex items-center gap-3">
-                  {d.selfie_url ? (
-                    <img src={d.selfie_url} className="w-8 h-8 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-400">?</div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium">
-                      <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 ${
-                        d.type === "berangkat" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
-                      }`}>{d.type}</span>
-                      🕐 {d.time?.slice(0, 5)}
-                    </p>
-                    <p className="text-[9px] text-gray-400 truncate">{d.latitude?.toFixed(4)}, {d.longitude?.toFixed(4)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
-
+          ))}
+        </div>
+      ))}
       {data.length === 0 && <p className="text-xs text-gray-400 text-center py-8">Belum ada data absensi</p>}
     </div>
   );

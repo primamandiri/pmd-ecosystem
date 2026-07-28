@@ -48,7 +48,7 @@ export default function AbsensiPage() {
       const { error } = await supabase.from("attendance").insert({
         user_id: user.id, name: profile?.display_name || user.email?.split("@")[0],
         date: now.toISOString().slice(0, 10),
-        time: now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false }),
+        time: now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false }),
         type, latitude: lat, longitude: lng, selfie_url: selfieUrl,
       });
       if (error) throw error;

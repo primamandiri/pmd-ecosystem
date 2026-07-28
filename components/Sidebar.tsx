@@ -15,7 +15,8 @@ const menu = [
     { label: "Tambah NOO", icon: Plus, path: "/tambah-noo" },
   ]},
   { label: "Dashboard", icon: LayoutDashboard, children: [
-    { label: "Laporan Sales", icon: BarChart3, path: "/dashboard/laporan" },
+    { label: "Laporan Bulanan", icon: BarChart3, path: "/dashboard/laporan" },
+    { label: "Laporan Mingguan", icon: BarChart3, path: "/dashboard/mingguan" },
     { label: "History Absensi", icon: Clock, path: "/dashboard/absensi" },
   ]},
   { label: "Database", icon: Database, children: [
