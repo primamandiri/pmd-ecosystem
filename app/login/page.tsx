@@ -16,7 +16,7 @@ export default function LoginPage() {
     setLoading(true); setError("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) setError(error.message);
-    else router.push("/absensi");
+    else router.push("/home");
     setLoading(false);
   };
 

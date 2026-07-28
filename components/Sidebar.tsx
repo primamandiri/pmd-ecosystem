@@ -4,7 +4,10 @@ import { useRouter, usePathname } from "next/navigation";
 import { 
   BarChart3, ClipboardList, MapPin, Plus, 
   LayoutDashboard, Database, Settings,
-  Store, Key, ChevronDown, ChevronRight, FileText, Clock
+  Store, Key, ChevronDown, ChevronRight, FileText, Clock,
+  ShoppingCart, Package, Truck, Users, Building2, 
+  History, RotateCcw, AlertTriangle, Search, UserCheck,
+  Image
 } from "lucide-react";
 
 const menu = [
@@ -14,16 +17,36 @@ const menu = [
     { label: "Aktivitas", icon: MapPin, path: "/aktivitas" },
     { label: "Tambah NOO", icon: Plus, path: "/tambah-noo" },
   ]},
+  { label: "Penjualan", icon: ShoppingCart, children: [
+    { label: "Input penjualan", icon: Plus, path: "/penjualan/input" },
+    { label: "Riwayat penjualan", icon: History, path: "/penjualan/riwayat" },
+    { label: "Retur penjualan", icon: RotateCcw, path: "/penjualan/retur" },
+  ]},
+  { label: "Pembelian", icon: Package, children: [
+    { label: "Input pembelian", icon: Plus, path: "/pembelian/input" },
+    { label: "Riwayat pembelian", icon: History, path: "/pembelian/riwayat" },
+    { label: "Retur pembelian", icon: RotateCcw, path: "/pembelian/retur" },
+    { label: "Stok minimal", icon: AlertTriangle, path: "/pembelian/stok-minimal" },
+  ]},
+  { label: "Ekspedisi", icon: Truck, children: [
+    { label: "Lacak pengiriman", icon: Search, path: "/ekspedisi/lacak" },
+    { label: "Penugasan driver", icon: UserCheck, path: "/ekspedisi/penugasan" },
+  ]},
   { label: "Dashboard", icon: LayoutDashboard, children: [
-    { label: "Laporan Bulanan", icon: BarChart3, path: "/dashboard/laporan" },
-    { label: "Laporan Mingguan", icon: BarChart3, path: "/dashboard/mingguan" },
-    { label: "History Absensi", icon: Clock, path: "/dashboard/absensi" },
+    { label: "Laporan bulanan", icon: FileText, path: "/dashboard/laporan" },
+    { label: "Laporan mingguan", icon: BarChart3, path: "/dashboard/mingguan" },
+    { label: "Laporan harian", icon: Clock, path: "/dashboard/harian" },
+    { label: "History absensi", icon: ClipboardList, path: "/dashboard/absensi" },
   ]},
   { label: "Database", icon: Database, children: [
     { label: "Data Toko", icon: Store, path: "/database/toko" },
+    { label: "Supplier", icon: Truck, path: "/database/supplier" },
+    { label: "Karyawan", icon: Users, path: "/database/karyawan" },
   ]},
   { label: "Pengaturan", icon: Settings, children: [
     { label: "Ubah Password", icon: Key, path: "/pengaturan/password" },
+    { label: "Logo & Nama", icon: Image, path: "/pengaturan/logo" },
+    { label: "Detail Perusahaan", icon: Building2, path: "/pengaturan/detail" },
   ]},
 ];
 
@@ -37,7 +60,9 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="w-64 h-full bg-gray-50 border-r border-gray-200 flex flex-col">
-      <div className="p-4 border-b border-gray-200">
+      {/* LOGO - klik ke /home */}
+      <div className="p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition"
+        onClick={() => { router.push("/home"); if (onClose) onClose(); }}>
         <div className="flex items-center gap-3">
           <img src="/logoPMD.png" alt="Logo" className="w-10 h-10 object-contain"
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
@@ -47,6 +72,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
           </div>
         </div>
       </div>
+
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {menu.map(m => (
           <div key={m.label}>

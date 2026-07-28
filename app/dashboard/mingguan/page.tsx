@@ -35,20 +35,17 @@ export default function MingguanPage() {
 
   const handlePaste = async () => {
     const lines = pasteText.trim().split("\n").filter(l => l.trim());
-    if (lines.length < 2) { alert("Paste header + data dari Excel"); return; }
+    if (lines.length < 2) { alert("Paste header + data"); return; }
     const rows = lines.slice(1).map((line, i) => {
       const cols = line.split("\t");
       return {
-        no: i + 1,
-        jabatan: cols[1] || "",
-        area: cols[2] || "",
-        nama_sdm: cols[3] || "",
-        tgt_per_minggu: parseFloat(cols[4]?.replace(/[Rp. ]/g,"").replace(",",".")) || 0,
-        act_m1: parseFloat(cols[5]?.replace(/[Rp. ]/g,"").replace(",",".")) || 0,
-        act_m2: parseFloat(cols[7]?.replace(/[Rp. ]/g,"").replace(",",".")) || 0,
-        act_m3: parseFloat(cols[9]?.replace(/[Rp. ]/g,"").replace(",",".")) || 0,
-        act_m4: parseFloat(cols[11]?.replace(/[Rp. ]/g,"").replace(",",".")) || 0,
-        act_m5: parseFloat(cols[13]?.replace(/[Rp. ]/g,"").replace(",",".")) || 0,
+        no: i+1, jabatan: cols[1]||"", area: cols[2]||"", nama_sdm: cols[3]||"",
+        tgt_per_minggu: parseFloat(cols[4]?.replace(/[Rp. ]/g,"").replace(",","."))||0,
+        act_m1: parseFloat(cols[5]?.replace(/[Rp. ]/g,"").replace(",","."))||0,
+        act_m2: parseFloat(cols[7]?.replace(/[Rp. ]/g,"").replace(",","."))||0,
+        act_m3: parseFloat(cols[9]?.replace(/[Rp. ]/g,"").replace(",","."))||0,
+        act_m4: parseFloat(cols[11]?.replace(/[Rp. ]/g,"").replace(",","."))||0,
+        act_m5: parseFloat(cols[13]?.replace(/[Rp. ]/g,"").replace(",","."))||0,
       };
     });
     const { error } = await supabase.from("weekly_reports").insert(rows);
@@ -62,52 +59,70 @@ export default function MingguanPage() {
 
   if (loading) return <div className="p-4 text-center text-gray-400">Loading...</div>;
 
-  const fmt = (v: any) => { const n = Number(v || 0); return n === 0 ? "0" : "Rp" + n.toLocaleString("id-ID"); };
-  const pct = (act: any, tgt: any) => { const a = Number(act || 0); const t = Number(tgt || 0); return t > 0 ? Math.round((a/t)*100) : 0; };
+  const fmt = (v: any) => { const n = Number(v||0); return n === 0 ? "0" : "Rp" + n.toLocaleString("id-ID"); };
+  const pct = (act: any, tgt: any) => { const a = Number(act||0); const t = Number(tgt||0); return t > 0 ? Math.round((a/t)*100) : 0; };
+
+  const points = [
+    { label: "M1", val: chartData.m1 },
+    { label: "M2", val: chartData.m2 },
+    { label: "M3", val: chartData.m3 },
+    { label: "M4", val: chartData.m4 },
+    { label: "M5", val: chartData.m5 },
+  ];
+  const stepX = 250 / 4;
+  const maxH = 120;
+  const getY = (v: number) => 140 - (v / maxAct) * maxH;
 
   return (
     <div className="p-3 max-w-6xl mx-auto space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-sm font-bold text-blue-800">📊 Laporan Mingguan</h1>
-        <button onClick={() => setShowPaste(true)}
-          className="px-3 py-1.5 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">📋 Paste</button>
+        <button onClick={() => setShowPaste(true)} className="px-3 py-1.5 bg-blue-600 text-white rounded text-xs">📋 Paste</button>
       </div>
 
-      {/* Filter */}
       <div className="flex gap-1 flex-wrap">
         <button onClick={() => setArea("ALL")}
-          className={`px-2.5 py-1 rounded text-[10px] font-medium ${area === "ALL" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}>ALL</button>
+          className={`px-2.5 py-1 rounded text-[10px] font-medium ${area==="ALL"?"bg-blue-600 text-white":"bg-gray-100 text-gray-600"}`}>ALL</button>
         {areas.map(a => (
           <button key={a} onClick={() => setArea(a)}
-            className={`px-2.5 py-1 rounded text-[10px] font-medium ${area === a ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}>{a}</button>
+            className={`px-2.5 py-1 rounded text-[10px] font-medium ${area===a?"bg-blue-600 text-white":"bg-gray-100 text-gray-600"}`}>{a}</button>
         ))}
       </div>
 
-      {/* Grafik */}
       {filtered.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <p className="text-xs font-medium text-gray-600 mb-3">📈 ACT per Minggu - {area}</p>
-          <div className="flex items-end gap-3 h-40">
-            {[
-              { label: "M1", val: chartData.m1 },
-              { label: "M2", val: chartData.m2 },
-              { label: "M3", val: chartData.m3 },
-              { label: "M4", val: chartData.m4 },
-              { label: "M5", val: chartData.m5 },
-            ].map((m, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <span className="text-[8px] text-gray-400">{fmt(m.val)}</span>
-                <div className="w-full bg-blue-100 rounded-t relative" style={{ height: "100%" }}>
-                  <div className="absolute bottom-0 w-full bg-blue-500 rounded-t transition-all" style={{ height: `${(m.val/maxAct)*100}%` }} />
-                </div>
-                <span className="text-[9px] font-medium">{m.label}</span>
-              </div>
+          <p className="text-xs font-medium text-gray-600 mb-3">📈 Trend ACT per Minggu - {area}</p>
+          <svg viewBox="0 0 300 160" className="w-full h-40">
+            {[0,1,2,3,4].map(i => (
+              <line key={i} x1="40" y1={20+i*30} x2="290" y2={20+i*30} stroke="#f0f0f0" strokeWidth="1" />
             ))}
-          </div>
+            {[0,1,2,3,4].map(i => {
+              const v = Math.round((maxAct/4)*(4-i));
+              return <text key={i} x="35" y={24+i*30} textAnchor="end" className="text-[8px]" fill="#999">{fmt(v)}</text>;
+            })}
+            {(() => {
+              const dLine = points.map((p,i) => `${i===0?"M":"L"}${40+i*stepX},${getY(p.val)}`).join(" ");
+              const dArea = dLine + ` L${40+4*stepX},140 L40,140 Z`;
+              return (
+                <>
+                  <path d={dArea} fill="#f97316" fillOpacity="0.1" />
+                  <path d={dLine} stroke="#f97316" strokeWidth="2.5" fill="none" strokeLinejoin="round" />
+                  {points.map((p,i) => (
+                    <g key={i}>
+                      <circle cx={40+i*stepX} cy={getY(p.val)} r="4" fill="#f97316" stroke="white" strokeWidth="2" />
+                      <text x={40+i*stepX} y={getY(p.val)-10} textAnchor="middle" className="text-[9px]" fill="#ea580c" fontWeight="bold">
+                        {fmt(p.val)}
+                      </text>
+                      <text x={40+i*stepX} y="155" textAnchor="middle" className="text-[9px]" fill="#666">{p.label}</text>
+                    </g>
+                  ))}
+                </>
+              );
+            })()}
+          </svg>
         </div>
       )}
 
-      {/* Tabel */}
       {filtered.length > 0 ? (
         <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
           <table className="w-full text-[9px] table-fixed">
@@ -158,9 +173,10 @@ export default function MingguanPage() {
             </tbody>
           </table>
         </div>
-      ) : <p className="text-xs text-gray-400 text-center py-8">Belum ada data</p>}
+      ) : (
+        <p className="text-xs text-gray-400 text-center py-8">Belum ada data</p>
+      )}
 
-      {/* Modal Paste */}
       {showPaste && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl p-4 w-full max-w-lg space-y-2">
@@ -175,14 +191,13 @@ export default function MingguanPage() {
         </div>
       )}
 
-      {/* Modal Edit */}
       {showEdit && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl p-4 w-full max-w-md space-y-2 max-h-[80vh] overflow-y-auto">
-            <p className="text-sm font-medium">✏️ Edit Data</p>
+            <p className="text-sm font-medium">✏️ Edit</p>
             {["jabatan","area","nama_sdm","tgt_per_minggu","act_m1","act_m2","act_m3","act_m4","act_m5"].map(f => (
               <input key={f} placeholder={f} value={editForm[f]??""}
-                onChange={e => setEditForm({...editForm, [f]: isNaN(Number(e.target.value)) ? e.target.value : Number(e.target.value)})}
+                onChange={e => setEditForm({...editForm, [f]: isNaN(Number(e.target.value))?e.target.value:Number(e.target.value)})}
                 className="w-full p-2 border rounded text-xs" />
             ))}
             <div className="flex gap-2">
