@@ -15,16 +15,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [greeting, setGreeting] = useState("");
   const [time, setTime] = useState("");
   const [online, setOnline] = useState(true);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isLogin = pathname === "/login";
   const supabase = createClient();
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) { window.location.href = "/login"; return; }
+      if (!data.user) {
+        if (window.location.pathname !== "/login") window.location.href = "/login";
+        setCheckingAuth(false);
+        return;
+      }
       setUser(data.user);
       const { data: p } = await supabase.from("profiles").select("display_name").eq("id", data.user.id).single();
       if (p) setProfile(p);
+      setCheckingAuth(false);
     });
 
     const updateTime = () => {
@@ -33,8 +39,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       const areas = ["", "Solo", "DIY", "Semarang", "Solo", "DIY", "Semarang"];
       setGreeting(`${areas[day]} Peak Day🔥`);
       setTime(
-        now.toLocaleDateString("id-ID", { weekday:"short", day:"numeric", month:"short", year:"numeric" }) +
-        " • " + now.toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit", hour12:false })
+        now.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) +
+        " • " + now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false })
       );
     };
     updateTime();
@@ -65,25 +71,35 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   if (isLogin) return <html lang="id"><body className="bg-slate-100 antialiased">{children}</body></html>;
 
+  if (checkingAuth) {
+    return (
+      <html lang="id">
+        <body className="bg-slate-100 flex items-center justify-center min-h-screen">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+            <p className="text-xs text-gray-400">Memuat...</p>
+          </div>
+        </body>
+      </html>
+    );
+  }
+
   const displayName = profile?.display_name || user?.email?.split("@")[0] || "Pengguna";
   const userInitial = displayName.charAt(0).toUpperCase();
 
   return (
     <html lang="id">
       <body className="bg-slate-100 text-slate-800 antialiased font-sans">
-        {/* Offline Banner */}
         {!online && (
           <div className="bg-red-500 text-white text-center text-xs py-1.5 font-medium">
-            ⚠️ Koneksi internet terputus — beberapa fitur mungkin tidak berfungsi
+            ⚠️ Koneksi internet terputus
           </div>
         )}
-
         <div className="flex h-screen overflow-hidden">
           {mobileOpen && (
             <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden transition-opacity"
               onClick={() => setMobileOpen(false)} />
           )}
-
           <div className={`fixed md:static inset-y-0 left-0 z-50 transform transition-transform duration-200 ease-in-out ${
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           } md:translate-x-0`}>
@@ -94,15 +110,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <header className="header-gradient px-4 py-2 flex items-center justify-between shrink-0 shadow-md">
               <div className="flex items-center gap-3">
                 <button onClick={() => setMobileOpen(true)}
-                  className="md:hidden p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition"
-                  aria-label="Open Menu">
+                  className="md:hidden p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </button>
                 <div>
                   <h2 className="text-sm font-semibold text-white leading-tight">
-                    {greeting ? `${greeting}, ${displayName}` : "Selamat datang"}
+                    {greeting ? `${greeting}, ${displayName}` : "Memuat..."}
                   </h2>
                   <p className="text-[11px] text-white/80 font-medium">{time || "—"}</p>
                 </div>
@@ -113,7 +128,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  <input type="text" placeholder="Cari menu, transaksi..."
+                  <input type="text" placeholder="Cari menu..."
                     className="bg-transparent text-white outline-none w-full placeholder:text-white/40" />
                 </div>
 
