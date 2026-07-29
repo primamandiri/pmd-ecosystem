@@ -1,5 +1,5 @@
 function compressImage(file: File): Promise<File> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const img = new Image();
@@ -20,7 +20,7 @@ function compressImage(file: File): Promise<File> {
           else resolve(file);
         }, "image/jpeg", 0.7);
       };
-      img.onerror = () => resolve(file); // kalau gagal, kirim file asli
+      img.onerror = () => resolve(file);
       img.src = e.target?.result as string;
     };
     reader.onerror = () => resolve(file);
@@ -28,11 +28,12 @@ function compressImage(file: File): Promise<File> {
   });
 }
 
-export async function uploadToCloudinary(file: File): Promise<string> {
+export async function uploadToCloudinary(file: File, folder?: string): Promise<string> {
   const compressed = await compressImage(file);
   const formData = new FormData();
   formData.append("file", compressed);
   formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+  if (folder) formData.append("folder", folder);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);
