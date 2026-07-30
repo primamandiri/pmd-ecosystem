@@ -1,23 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
-import { isBiometricAvailable, getSavedBiometric, saveBiometric, removeBiometric, authenticateWithBiometric, registerBiometric } from "@/lib/biometric";
+import { getSavedBiometric, saveBiometric, removeBiometric, authenticateWithBiometric, registerBiometric } from "@/lib/biometric";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
-  const [bioAvailable, setBioAvailable] = useState(false);
   const [savedBio, setSavedBio] = useState<any>(null);
-  const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
-    isBiometricAvailable().then(setBioAvailable);
     const saved = getSavedBiometric();
-    if (saved) { setSavedBio(saved); setEmail(saved.email); }
+    if (saved) { setEmail(saved.email); setSavedBio(saved); }
+    document.title = "PMD Ecosystem";
   }, []);
 
   const login = async (e?: React.FormEvent) => {
@@ -26,37 +23,33 @@ export default function LoginPage() {
     setLoading(true); setMsg("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { setMsg("❌ " + error.message); setLoading(false); return; }
+    saveBiometric({ email, token: btoa(password) });
     window.location.href = "/home";
   };
 
   const bioLogin = async () => {
-    if (!savedBio) return;
-    setMsg("🔐 Verifikasi sidik jari...");
-    try {
-      const ok = await authenticateWithBiometric();
-      if (ok) {
-        setPassword("");
-        setMsg("✅ Berhasil! Mengisi email...");
-        setEmail(savedBio.email);
-        setTimeout(() => login(), 500);
-      } else setMsg("❌ Verifikasi gagal");
-    } catch { setMsg("❌ Biometric tidak tersedia"); }
+    const saved = getSavedBiometric();
+    if (!saved || !saved.token) { setMsg("❌ Belum simpan"); return; }
+    setMsg("🔐 Verifikasi biometric...");
+    setLoading(true);
+    const ok = await authenticateWithBiometric();
+    if (!ok) { setMsg("❌ Biometric gagal"); setLoading(false); return; }
+    const pwd = atob(saved.token);
+    const { error } = await supabase.auth.signInWithPassword({ email: saved.email, password: pwd });
+    if (error) { setMsg("❌ " + error.message); setLoading(false); return; }
+    window.location.href = "/home";
   };
 
-  const enableBiometric = async () => {
-    if (!email || !password) { setMsg("❌ Login dulu dengan email & password"); return; }
-    const ok = await registerBiometric(email, email.split("@")[0]);
-    if (ok) {
-      saveBiometric({ email, name: email.split("@")[0] });
-      setSavedBio({ email, name: email.split("@")[0] });
-      setMsg("✅ Biometric berhasil didaftarkan!");
-    } else setMsg("❌ Gagal daftarkan biometric");
-  };
-
-  const disableBiometric = () => {
-    removeBiometric();
-    setSavedBio(null);
-    setMsg("✅ Biometric dihapus");
+  const toggleSave = () => {
+    if (savedBio) { removeBiometric(); setSavedBio(null); setMsg("✅ Data login dihapus"); }
+    else {
+      if (!email || !password) { setMsg("❌ Isi email & password dulu"); return; }
+      registerBiometric().then(ok => {
+        saveBiometric({ email, token: btoa(password) });
+        setSavedBio({ email, token: btoa(password) });
+        setMsg(ok ? "✅ Biometric tersimpan!" : "✅ Tersimpan (biometric tidak didukung perangkat)");
+      });
+    }
   };
 
   return (
@@ -69,20 +62,20 @@ export default function LoginPage() {
           <p className="text-xs text-gray-400">CV Prima Mandiri Distribusi</p>
         </div>
 
-        {savedBio && bioAvailable ? (
+        {savedBio ? (
           <div className="space-y-3">
-            <p className="text-sm text-center text-gray-600">Selamat datang kembali</p>
-            <p className="text-sm font-medium text-center">{savedBio.email}</p>
+            <p className="text-sm text-center text-gray-600">Masuk sebagai</p>
+            <p className="text-sm font-semibold text-center text-blue-800">{savedBio.email}</p>
             <button onClick={bioLogin} disabled={loading}
               className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2">
-              🔐 Login dengan Sidik Jari
+              🔐 Biometric
             </button>
             <button onClick={() => { setSavedBio(null); setEmail(""); setPassword(""); }}
               className="w-full py-2 text-xs text-gray-400 hover:text-gray-600">
-              Gunakan email lain
+              Ganti akun
             </button>
-            <button onClick={disableBiometric} className="w-full py-1 text-[10px] text-red-400 hover:text-red-600">
-              Hapus biometric
+            <button onClick={toggleSave} className="w-full py-1 text-[10px] text-red-400 hover:text-red-600">
+              Hapus data login
             </button>
           </div>
         ) : (
@@ -93,19 +86,14 @@ export default function LoginPage() {
             <input type="password" placeholder="Password" value={password}
               onChange={e => setPassword(e.target.value)}
               className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400" required />
-
             <button type="submit" disabled={loading}
               className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-50">
               {loading ? "Memproses..." : "Masuk"}
             </button>
-
-            {bioAvailable && email && (
-              <button type="button" onClick={enableBiometric}
-                className="w-full py-2 text-xs text-blue-600 hover:text-blue-800">
-                🔐 Ingat perangkat ini (Fingerprint/Face ID)
-              </button>
-            )}
-
+            <button type="button" onClick={toggleSave}
+              className="w-full py-2 text-xs text-blue-600 hover:text-blue-800">
+              💾 Simpan Biometric
+            </button>
             {msg && <p className="text-xs text-center">{msg}</p>}
           </form>
         )}

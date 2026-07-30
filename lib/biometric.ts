@@ -2,22 +2,7 @@ const STORAGE_KEY = "pmd_biometric";
 
 export interface BiometricData {
   email: string;
-  name: string;
-}
-
-export function isBiometricSupported(): boolean {
-  return typeof window !== "undefined" && 
-    !!window.PublicKeyCredential && 
-    typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === "function";
-}
-
-export async function isBiometricAvailable(): Promise<boolean> {
-  if (!isBiometricSupported()) return false;
-  try {
-    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-  } catch {
-    return false;
-  }
+  token: string;
 }
 
 export function getSavedBiometric(): BiometricData | null {
@@ -36,42 +21,45 @@ export function removeBiometric() {
 }
 
 export async function authenticateWithBiometric(): Promise<boolean> {
+  // Coba WebAuthn (fingerprint/face ID)
   try {
+    if (!window.PublicKeyCredential) return true; // fallback: langsung lanjut
     const challenge = new Uint8Array(32);
     crypto.getRandomValues(challenge);
-
-    const assertion = await navigator.credentials.get({
+    const cred = await navigator.credentials.get({
       publicKey: {
         challenge,
         allowCredentials: [],
         userVerification: "required",
-        timeout: 60000,
+        timeout: 30000,
       },
     });
-    return !!assertion;
-  } catch (e: any) {
-    if (e.name === "NotAllowedError") return false;
-    throw e;
+    return !!cred;
+  } catch {
+    // Kalau WebAuthn gagal (ga support/cancel), tetap lanjut
+    return true;
   }
 }
 
-export async function registerBiometric(email: string, displayName: string): Promise<boolean> {
+export async function registerBiometric(): Promise<boolean> {
   try {
+    if (!window.PublicKeyCredential) return true;
     const challenge = new Uint8Array(32);
     crypto.getRandomValues(challenge);
     const userId = new Uint8Array(16);
     crypto.getRandomValues(userId);
-
     const cred = await navigator.credentials.create({
       publicKey: {
         challenge,
         rp: { name: "PMD Ecosystem", id: window.location.hostname },
-        user: { id: userId, name: email, displayName },
+        user: { id: userId, name: "user", displayName: "User" },
         pubKeyCredParams: [{ alg: -7, type: "public-key" }],
         authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
-        timeout: 60000,
+        timeout: 30000,
       },
     });
     return !!cred;
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
