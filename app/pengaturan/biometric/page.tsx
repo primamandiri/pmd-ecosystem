@@ -17,7 +17,7 @@ export default function BiometricPage() {
   const daftarkan = async () => {
     const bio = getSavedBiometric();
     if (!bio || !bio.token) { setMsg("❌ Login dulu dengan email & password"); return; }
-    const ok = await registerBiometric(bio.email);
+    const ok = await registerBiometric();
     if (ok) setMsg("✅ Biometric berhasil didaftarkan! Next login cukup fingerprint");
     else setMsg("❌ Gagal");
   };
