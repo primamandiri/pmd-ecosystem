@@ -1,104 +1,112 @@
 "use client";
 import { useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { 
-  BarChart3, ClipboardList, MapPin, Plus, 
-  LayoutDashboard, Database, Settings,
-  Store, Key, ChevronDown, ChevronRight, FileText, Clock,
-  ShoppingCart, Package, Truck, Users, Building2, 
-  History, RotateCcw, AlertTriangle, Search, UserCheck,
-  Image, Fingerprint
-} from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Users, DollarSign, Package, Truck, LayoutDashboard, Database, Settings,
+  ClipboardCheck, FileText, Activity, UserPlus, Clock,
+  ShoppingCart, History, RotateCcw,
+  PackagePlus, PackageOpen, AlertTriangle,
+  MapPin, UserCheck,
+  BarChart3, Calendar, TrendingUp,
+  Store, Key, Fingerprint, User,
+  ChevronLeft, ChevronRight } from "lucide-react";
 
-const menu = [
-  { label: "Sales", icon: BarChart3, children: [
-    { label: "Absensi", icon: ClipboardList, path: "/absensi" },
-    { label: "SPK Sales", icon: FileText, path: "/spk" },
-    { label: "Aktivitas", icon: MapPin, path: "/aktivitas" },
-    { label: "Tambah NOO", icon: Plus, path: "/tambah-noo" },
+const MENU_ITEMS = [
+  { label: "Sales", icon: Users, children: [
+    { label: "Absensi", path: "/absensi", icon: ClipboardCheck },
+    { label: "SPK Sales", path: "/spk", icon: FileText },
+    { label: "Aktivitas", path: "/aktivitas", icon: Activity },
+    { label: "Tambah NOO", path: "/tambah-noo", icon: UserPlus },
+    { label: "History Absensi", path: "/absensi/history", icon: Clock },
   ]},
-  { label: "Penjualan", icon: ShoppingCart, children: [
-    { label: "Input penjualan", icon: Plus, path: "/penjualan/input" },
-    { label: "Riwayat penjualan", icon: History, path: "/penjualan/riwayat" },
-    { label: "Retur penjualan", icon: RotateCcw, path: "/penjualan/retur" },
+  { label: "Penjualan", icon: DollarSign, children: [
+    { label: "Input Penjualan", path: "#", icon: ShoppingCart },
+    { label: "Riwayat Penjualan", path: "#", icon: History },
+    { label: "Retur Penjualan", path: "#", icon: RotateCcw },
   ]},
   { label: "Pembelian", icon: Package, children: [
-    { label: "Input pembelian", icon: Plus, path: "/pembelian/input" },
-    { label: "Riwayat pembelian", icon: History, path: "/pembelian/riwayat" },
-    { label: "Retur pembelian", icon: RotateCcw, path: "/pembelian/retur" },
-    { label: "Stok minimal", icon: AlertTriangle, path: "/pembelian/stok-minimal" },
+    { label: "Input Pembelian", path: "#", icon: PackagePlus },
+    { label: "Riwayat Pembelian", path: "#", icon: PackageOpen },
+    { label: "Retur Pembelian", path: "#", icon: RotateCcw },
+    { label: "Stok Minimal", path: "#", icon: AlertTriangle },
   ]},
   { label: "Ekspedisi", icon: Truck, children: [
-    { label: "Lacak pengiriman", icon: Search, path: "/ekspedisi/lacak" },
-    { label: "Penugasan driver", icon: UserCheck, path: "/ekspedisi/penugasan" },
+    { label: "Lacak Pengiriman", path: "/ekspedisi/lacak", icon: MapPin },
+    { label: "Penugasan Driver", path: "#", icon: UserCheck },
   ]},
   { label: "Dashboard", icon: LayoutDashboard, children: [
-    { label: "Grafik Tahunan", icon: BarChart3, path: "/dashboard/tahunan" },
-    { label: "Laporan bulanan", icon: FileText, path: "/dashboard/laporan" },
-    { label: "Laporan mingguan", icon: BarChart3, path: "/dashboard/mingguan" },
-    { label: "Laporan harian", icon: Clock, path: "/dashboard/harian" },
-    { label: "History absensi", icon: ClipboardList, path: "/dashboard/absensi" },
+    { label: "Grafik Tahunan", path: "/dashboard/tahunan", icon: BarChart3 },
+    { label: "Laporan Bulanan", path: "/dashboard/laporan", icon: Calendar },
+    { label: "Laporan Mingguan", path: "/dashboard/mingguan", icon: TrendingUp },
   ]},
   { label: "Database", icon: Database, children: [
-    { label: "Data Toko", icon: Store, path: "/database/toko" },
-    { label: "Supplier", icon: Truck, path: "/database/supplier" },
-    { label: "Karyawan", icon: Users, path: "/database/karyawan" },
+    { label: "Data Toko", path: "/database/toko", icon: Store },
   ]},
   { label: "Pengaturan", icon: Settings, children: [
-    { label: "Ubah Password", icon: Key, path: "/pengaturan/password" },
-    { label: "Biometric", icon: Fingerprint, path: "/pengaturan/biometric" },
-    { label: "Logo & Nama", icon: Image, path: "/pengaturan/logo" },
-    { label: "Detail Perusahaan", icon: Building2, path: "/pengaturan/detail" },
+    { label: "Profil", path: "/pengaturan/profil", icon: User },
+    { label: "Ubah Password", path: "/pengaturan/password", icon: Key },
+    { label: "Biometric", path: "/pengaturan/biometric", icon: Fingerprint },
   ]},
 ];
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
-  const [openMenu, setOpenMenu] = useState<string[]>(["Sales"]);
-  const router = useRouter();
   const pathname = usePathname();
+  const router = useRouter();
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const [collapsed, setCollapsed] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
-  const toggle = (label: string) => setOpenMenu(p => p.includes(label) ? p.filter(m => m !== label) : [...p, label]);
-  const navigate = (path: string) => { router.push(path); if (onClose) onClose(); };
+  const isActive = (path: string) => pathname === path;
+  const isInGroup = (children: any[]) => children?.some((c: any) => isActive(c.path));
+
+  MENU_ITEMS.forEach((item) => {
+    if (isInGroup(item.children) && !openMenus[item.label])
+      setOpenMenus((prev) => ({ ...prev, [item.label]: true }));
+  });
+
+  const toggleMenu = (label: string) => setOpenMenus((prev) => ({ ...prev, [label]: !prev[label] }));
+  const expanded = !collapsed || hovered;
 
   return (
-    <div className="w-64 h-full sidebar-dark flex flex-col">
-      <div className="p-4 border-b border-white/10 cursor-pointer hover:bg-white/5 transition"
-        onClick={() => { router.push("/home"); if (onClose) onClose(); }}>
-        <div className="flex items-center gap-3">
-          <img src="/logoPMD.png" alt="Logo" className="w-10 h-10 object-contain rounded-lg"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-          <div>
-            <p className="font-bold text-sm text-white">PMD Ecosystem</p>
-            <p className="text-xs text-gray-400">CV Prima Mandiri Distribusi</p>
-          </div>
+    <aside className={`bg-gradient-to-b from-blue-900 to-blue-950 text-white h-full flex flex-col transition-all duration-200 ${expanded ? "w-60" : "w-14"}`}
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => { if (collapsed) setHovered(false); }}>
+      <div className="border-b border-blue-800/40 px-4 py-3">
+        <div className="cursor-pointer flex items-center gap-3" onClick={() => router.push("/home")}>
+          <img src="/logoPMD.png" alt="" className="w-8 h-8 object-contain shrink-0" onError={(e: any) => e.target.style.display = "none"} />
+          {expanded && <div><p className="text-sm font-bold text-white leading-tight">PMD Ecosystem</p>
+            <p className="text-[9px] text-blue-300 leading-tight">CV Prima Mandiri Distribusi</p>
+            <p className="text-[7px] text-blue-400/60 leading-tight">by NB Projects</p></div>}
         </div>
       </div>
-
-      <div className="flex-1 overflow-y-auto p-2 space-y-1">
-        {menu.map(m => (
-          <div key={m.label}>
-            <button onClick={() => toggle(m.label)}
-              className="w-full flex items-center gap-2 p-2 rounded-lg menu-item text-sm font-medium text-gray-300">
-              <m.icon className="w-4 h-4 text-blue-400" />
-              <span className="flex-1 text-left">{m.label}</span>
-              {openMenu.includes(m.label) ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+      <button onClick={() => { setCollapsed(!collapsed); setHovered(false); }}
+        className={`flex items-center py-2 text-blue-300 hover:text-white ${expanded ? "px-4 justify-end" : "justify-center"}`}>
+        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+      </button>
+      <nav className="flex-1 overflow-y-auto py-1 space-y-0.5 px-1">
+        {MENU_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const active = isInGroup(item.children);
+          return (<div key={item.label}>
+            <button onClick={() => { toggleMenu(item.label); if (onClose) onClose(); }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition ${expanded ? "justify-start" : "justify-center"} ${active ? "bg-blue-700/50 text-white font-semibold" : "text-blue-100 hover:bg-blue-800/40 hover:text-white"}`}
+              title={!expanded ? item.label : undefined}>
+              <Icon className="w-5 h-5 shrink-0" />
+              {expanded && <span>{item.label}</span>}
             </button>
-            {openMenu.includes(m.label) && (
-              <div className="ml-2 space-y-0.5">
-                {m.children.map(c => (
-                  <button key={c.path} onClick={() => navigate(c.path)}
-                    className={`w-full flex items-center gap-2 p-2 rounded-lg text-sm ${
-                      pathname === c.path ? "bg-blue-600 text-white font-medium" : "text-gray-400 hover:bg-white/10 hover:text-white"
-                    }`}>
-                    <c.icon className="w-3.5 h-3.5" />
-                    <span>{c.label}</span>
-                  </button>
-                ))}
+            {expanded && openMenus[item.label] && item.children && (
+              <div className="ml-2 border-l border-blue-800/40">
+                {item.children.map((child) => {
+                  const ChildIcon = child.icon;
+                  return (<button key={child.label} onClick={() => { router.push(child.path); if (onClose) onClose(); }}
+                    className={`w-full text-left flex items-center gap-2.5 px-3 py-2 text-sm transition ${isActive(child.path) ? "bg-blue-700/50 text-white font-semibold" : "text-blue-200 hover:text-white hover:bg-blue-800/30"}`}>
+                    <ChildIcon className="w-4 h-4 shrink-0 text-blue-300" />
+                    {child.label}
+                  </button>);
+                })}
               </div>
             )}
-          </div>
-        ))}
-      </div>
-    </div>
+          </div>);
+        })}
+      </nav>
+    </aside>
   );
 }

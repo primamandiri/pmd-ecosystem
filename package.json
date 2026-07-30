@@ -11,11 +11,12 @@
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.8",
-    "lucide-react": "^1.27.0",
+    "lucide-react": "^1.28.0",
     "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-webcam": "^7.2.0"
+    "react-webcam": "^7.2.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.13",
