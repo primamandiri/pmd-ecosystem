@@ -33,6 +33,7 @@ const menu = [
     { label: "Penugasan driver", icon: UserCheck, path: "/ekspedisi/penugasan" },
   ]},
   { label: "Dashboard", icon: LayoutDashboard, children: [
+    { label: "Grafik Tahunan", icon: BarChart3, path: "/dashboard/tahunan" },
     { label: "Laporan bulanan", icon: FileText, path: "/dashboard/laporan" },
     { label: "Laporan mingguan", icon: BarChart3, path: "/dashboard/mingguan" },
     { label: "Laporan harian", icon: Clock, path: "/dashboard/harian" },
