@@ -7,7 +7,7 @@ import {
   Store, Key, ChevronDown, ChevronRight, FileText, Clock,
   ShoppingCart, Package, Truck, Users, Building2, 
   History, RotateCcw, AlertTriangle, Search, UserCheck,
-  Image
+  Image, Fingerprint
 } from "lucide-react";
 
 const menu = [
@@ -45,6 +45,7 @@ const menu = [
   ]},
   { label: "Pengaturan", icon: Settings, children: [
     { label: "Ubah Password", icon: Key, path: "/pengaturan/password" },
+    { label: "Biometric", icon: Fingerprint, path: "/pengaturan/biometric" },
     { label: "Logo & Nama", icon: Image, path: "/pengaturan/logo" },
     { label: "Detail Perusahaan", icon: Building2, path: "/pengaturan/detail" },
   ]},
