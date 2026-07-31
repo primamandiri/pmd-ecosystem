@@ -86,7 +86,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
           const Icon = item.icon;
           const active = isInGroup(item.children);
           return (<div key={item.label}>
-            <button onClick={() => { toggleMenu(item.label); if (onClose) onClose(); }}
+            <button onClick={() => toggleMenu(item.label)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition ${expanded ? "justify-start" : "justify-center"} ${active ? "bg-blue-700/50 text-white font-semibold" : "text-blue-100 hover:bg-blue-800/40 hover:text-white"}`}
               title={!expanded ? item.label : undefined}>
               <Icon className="w-5 h-5 shrink-0" />
